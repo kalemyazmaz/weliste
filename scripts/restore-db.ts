@@ -7,6 +7,27 @@ import path from "node:path";
 import { getDb } from "../src/lib/db";
 import { applySchema } from "../src/db/migrate";
 
+// Tabloları yabancı anahtar bağımlılığına göre sıralar (üst tablo önce). Döngü varsa hata verir.
+async function insertOrder(db: ReturnType<typeof getDb>, tables: string[]): Promise<string[]> {
+  const r = await db.transaction((tx) =>
+    tx.query<{ child: string; parent: string }>(
+      `SELECT c.relname AS child, p.relname AS parent FROM pg_constraint k
+       JOIN pg_class c ON c.oid = k.conrelid JOIN pg_class p ON p.oid = k.confrelid
+       JOIN pg_namespace n ON n.oid = c.relnamespace WHERE k.contype = 'f' AND n.nspname = 'public'`,
+    ),
+  );
+  const deps = new Map<string, Set<string>>(tables.map((t) => [t, new Set()]));
+  for (const e of r.rows) if (e.child !== e.parent && deps.has(e.child) && deps.has(e.parent)) deps.get(e.child)!.add(e.parent);
+  const done: string[] = [];
+  const left = new Set(tables);
+  while (left.size) {
+    const ready = [...left].filter((t) => [...deps.get(t)!].every((p) => !left.has(p)));
+    if (!ready.length) throw new Error("Yabancı anahtar döngüsü var; geri yükleme sırası belirlenemedi.");
+    for (const t of ready.sort()) { done.push(t); left.delete(t); }
+  }
+  return done;
+}
+
 async function main() {
   const dir = process.argv[2];
   if (!dir || !existsSync(path.join(dir, "_manifest.json"))) {
@@ -22,10 +43,11 @@ async function main() {
   const db = getDb();
   await applySchema(db);
   // Tüm tabloları tek işlemde boşalt ve yükle. Yabancı anahtar kontrolü geçici kapatılır.
+  // Yabancı anahtar sırası: üst tablolar önce yüklenir. Süper kullanıcı gerektirmez (Neon uyumlu).
+  const order = await insertOrder(db, tables);
   await db.transaction(async (tx) => {
-    await tx.query("SET LOCAL session_replication_role = replica");
     await tx.query(`TRUNCATE ${tables.map((t) => `"${t}"`).join(", ")} CASCADE`);
-    for (const t of tables) {
+    for (const t of order) {
       const lines = readFileSync(path.join(dir, `${t}.jsonl`), "utf8").split("\n").filter((l) => l.trim() !== "");
       for (const line of lines) {
         await tx.query(`INSERT INTO "${t}" SELECT * FROM json_populate_record(NULL::"${t}", $1::json)`, [line]);
