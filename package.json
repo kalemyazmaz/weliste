@@ -1,0 +1,34 @@
+{
+  "name": "organiza-saas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx tests/run.ts",
+    "db:seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.3.0",
+    "@fontsource-variable/inter": "^5.1.1",
+    "@fontsource-variable/inter-tight": "^5.3.0",
+    "@pdf-lib/fontkit": "^1.1.1",
+    "dejavu-fonts-ttf": "^2.37.3",
+    "next": "15.1.6",
+    "pdf-lib": "^1.17.1",
+    "pg": "^8.13.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.2.17",
+    "@types/node": "22.10.2",
+    "@types/pg": "^8.11.10",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
+    "tsx": "^4.19.2",
+    "typescript": "5.7.2"
+  }
+}

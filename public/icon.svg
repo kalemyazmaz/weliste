@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Weliste">
+  <rect width="512" height="512" rx="112" fill="#252829"/>
+  <g fill="none" stroke="#E9E8E3" stroke-width="66" stroke-linecap="round" stroke-linejoin="round" transform="translate(56 56) scale(2.6)">
+    <polyline points="14,30 30,84 50,46"/>
+    <polyline points="62,18 62,84 86,36"/>
+  </g>
+</svg>

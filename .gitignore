@@ -1,0 +1,10 @@
+node_modules
+.next
+*.log
+.env*
+.DS_Store
+next-env.d.ts
+tsconfig.tsbuildinfo
+
+# Tarayıcı denetim çıktıları
+.taste-skill/
